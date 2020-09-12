@@ -12,27 +12,31 @@ app.use(morgan('dev'));
 app.use(express.urlencoded({extended: false}));
 
 
-//Routes
-
-app.get('/conn',function(req,res){
-    console.log('get de middleware');
-    res.json({
-        message: 'se conecto'
-    });
-});
-
 const server = app.listen(port, () => {
   console.log('Escuchando en el puerto de middleware: ' + port);
 });
 
 let socket = io(server);
+let existLeader = 0;
+let list_nodes = [];
+let nodes;
 
-let list_node = [];
+socket.on('connection',async node => {
+    console.log('Nueva conexión:', node.handshake.headers.origin);
+    node.join('nodes');
+    nodes = socket.sockets.adapter.rooms['nodes'];
 
-socket.on('connection', node => {
-    console.log('Nueva conexión:', node.id);
-    
-    node.on('req:say', server => {
-        console.log('middleeware recibe: ' + server.saludo);
+    //agregar los nodos entrantes a la lista
+        list_nodes.push({
+           url: node.handshake.headers.origin,
+           leader: (existLeader == 0)? 1: 0,
+           id_socket: node.id
+        });
+        //cuando se tiene el lider no se asigna otro lider
+        existLeader = 1;
+
+        //se envia la lista a cada uno de los nodos
+    socket.to('nodes').emit('res:list',{
+        list:JSON.stringify(list_nodes)
     });
 });
