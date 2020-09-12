@@ -1,5 +1,4 @@
 const express = require('express');
-const io = require('socket.io');
 const axios = require('axios');
 const port = process.argv[2];
 const morgan = require('morgan');
