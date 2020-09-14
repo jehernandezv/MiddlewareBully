@@ -42,9 +42,39 @@ app.post('/newConn', function (req, res, next) {
                 list: JSON.stringify(list_nodes)
             }).then((response) => {
                 console.log(response.data);
-            }).cat
+            }).catch((error) => {
+                console.log(error.code);
+            });
         }
     });
+});
+
+app.post('/newLeader', function(req, res, next) {
+    console.log('entro a nwe leader');
+    var newLeader = req.body.newLeader;
+    list_nodes.forEach(element => {
+        if(element.leader == 1 && element.url != newLeader){
+            element.leader = 0;
+        }else if(element.url == newLeader){
+            element.leader = 1;
+        }
+    });
+
+    //enviar a el update de leader menos al nuevo leader
+    list_nodes.forEach(element => {
+            axios.post(element.url+'/updateList', {
+                list: JSON.stringify(list_nodes)
+            }).then((response) => {
+                console.log(response.data);
+            }).catch((error) => {
+                console.log(error.code);
+            })
+    });
+
+    res.json({
+        message:'Se ha actualizado el middleware'
+    });
+
 });
 
 function isExist(listNodes,urlNew){
